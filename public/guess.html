@@ -268,7 +268,7 @@
       font-size: 23px; cursor: pointer; transition: background 0.2s, color 0.2s;
       min-width: 190px; text-align: center;
       margin-top:370px;
-      transform:translateX(320px);
+      transform:translateX(315px);
       padding: 14px 70px;
     }
     .sub-btn:hover { background: var(--black); color: var(--white); }
@@ -405,6 +405,11 @@ function fadeClose(el) {
   setTimeout(() => { el.classList.add('hidden'); el.classList.remove('closing'); }, 400);
 }
 
+// Cache le popup How to play si on arrive avec un ?id (ex: Play again)
+if (new URLSearchParams(window.location.search).get('id')) {
+  document.getElementById('popupOverlay').classList.add('hidden');
+}
+
 
 document.getElementById('popupClose').addEventListener('click', () => {
   fadeClose(document.getElementById('popupOverlay'));
@@ -506,6 +511,14 @@ document.getElementById('continueBtn').addEventListener('click', () => {
 
 document.getElementById('createStoryBtn').addEventListener('click', () => {
   window.location.href = '/builder.html';
+});
+
+document.getElementById('subBtn2').addEventListener('click', async () => {
+  const all = await fetch('/all-characters').then(r => r.json());
+  const others = all.filter(c => c.id !== (characterData && characterData.id));
+  if (others.length === 0) { window.location.reload(); return; }
+  const random = others[Math.floor(Math.random() * others.length)];
+  window.location.href = '/guess.html?id=' + random.id;
 });
 
 /* ── Fun facts ── */
