@@ -17,6 +17,7 @@ db.run(`
 CREATE TABLE IF NOT EXISTS characters (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   name        TEXT,
+  title       TEXT,
   story       TEXT,
   symbol      TEXT,
   eyebrow     TEXT,
@@ -32,7 +33,8 @@ CREATE TABLE IF NOT EXISTS characters (
   sadness     INTEGER,
   anger       INTEGER,
   fear        INTEGER,
-  surprise    INTEGER
+  surprise    INTEGER,
+  color       TEXT
 )
 `);
 
