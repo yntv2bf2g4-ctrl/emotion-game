@@ -3,7 +3,8 @@
     "allow": [
       "Bash(node -e \"const sqlite3 = require\\('sqlite3'\\).verbose\\(\\); const db = new sqlite3.Database\\('./database.db'\\); db.run\\('ALTER TABLE characters ADD COLUMN title TEXT', \\(err\\) => { console.log\\(err ? err.message : 'OK - colonne title ajoutée'\\); db.close\\(\\); }\\);\")",
       "mcp__Claude_Preview__preview_start",
-      "mcp__Claude_in_Chrome__tabs_context_mcp"
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(git rm *)"
     ]
   }
 }
