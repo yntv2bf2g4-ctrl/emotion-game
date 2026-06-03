@@ -1,0 +1,108 @@
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#a8daf0;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden;}
+.app{background:#b8e8f5;padding:28px 32px;font-family:'Nunito',sans-serif;width:100vw;height:100vh;display:flex;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:center;margin-bottom:18px;position:relative;}
+.back-btn{font-family:'Caveat',cursive;font-size:26px;color:#555;background:none;border:none;cursor:pointer;position:absolute;left:0;}
+.player-input{font-family:'Caveat',cursive;font-size:26px;background:white;border:none;border-radius:24px;padding:7px 28px;min-width:200px;text-align:center;outline:none;color:#333;}
+.main{
+  display:grid;
+  grid-template-columns:900px 1fr 550px;  
+  gap:20px;
+  flex:1;
+  min-height:0;
+  align-items:center;
+}
+.char-col{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.story-card{
+  background:white;
+  border-radius:16px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+
+  width:550px;
+  height:500px; /* ← remet une grande hauteur */
+
+  align-self:center;
+}
+.story-title{font-family:'Caveat',cursive;font-size:26px;color:#333;margin-bottom:10px;}
+.story-ta{width:100%;border:none;outline:none;font-family:'Nunito',sans-serif;font-size:14px;color:#555;resize:none;flex:1;line-height:1.7;background:transparent;}
+.char-col{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  position:relative;
+  left:-230px; /* ← recentre le personnage */
+}
+.char-svg{
+  width:260px;
+  height:400px;
+}
+.char-svg{width:260px;height:400px;}
+.parts-panel{background:rgba(255,255,255,0.7);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;}
+.parts-label{font-family:'Caveat',cursive;font-size:16px;color:#666;margin-bottom:4px;}
+.parts-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.part-btn{background:white;border:1.5px solid #ddd;border-radius:10px;padding:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color 0.15s;}
+.part-btn:hover{border-color:#88c;}
+.part-btn.active{border-color:#7f77dd;background:#eeedfe;}
+.part-btn svg{width:52px;height:30px;}
+.bottom-bar{display:flex;align-items:flex-end;gap:16px;margin-top:18px;}
+.emotions-box{background:rgba(255,255,255,0.85);border-radius:14px;padding:14px 20px;width:1200px;flex-shrink:0;}
+.emotions-title{font-family:'Caveat',cursive;font-size:18px;color:#666;margin-bottom:8px;}
+.emotion-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:12px;
+  width:100%;
+}
+.emotion-name{
+  width:120px;
+  flex-shrink:0;
+}
+.emotion-slider{
+  flex:1;
+  cursor:pointer;
+  accent-color:#7f77dd;
+}
+.emotion-pct{font-family:'Caveat',cursive;font-size:16px;color:#666;width:38px;text-align:right;flex-shrink:0;}
+.answer-btn{font-family:'Caveat',cursive;font-size:24px;color:#555;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:auto;padding-bottom:4px;}
+.tri{width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;border-left:15px solid currentColor;display:inline-block;}
+
+/* ── Ajouts pour le personnage en calques PNG ── */
+.char-stage {
+  position: relative;
+  width: 260px;
+  height: 400px;
+  transform: scale(2.3);
+  transform-origin: center;
+}
+.char-stage img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+.parts-panel {
+  background: rgba(255,255,255,0.7);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+.part-btn{
+  width:500px;
+  height:500px;
+}
+.part-btn.none-btn {
+  font-family: 'Caveat', cursive;
+  font-size: 12px;
+  color: #aaa;
+}

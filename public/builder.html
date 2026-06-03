@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mirror – Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --yellow: #d8d8d8;
+      --black:  #1a1a1a;
+      --white:  #ffffff;
+      --border: 1px solid #1a1a1a;
+    }
+    body {
+      background: var(--yellow);
+      font-family: 'Courier Prime', 'Courier New', monospace;
+      color: var(--black);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 28px 0;
+    }
+    .back-btn {
+      position: absolute; 
+      background: none; border: none; cursor: pointer; padding: 0; margin-top:80px;
+      display: inline-flex; line-height: 0; font-size: 0;
+      width: fit-content; height: fit-content;
+      transition: opacity 0.2s; z-index: 10;
+      clip-path: inset(40% 0% 40% 0%);
+    }
+    .back-btn:hover { opacity: 0.8; }
+    .back-btn img { height: 300px; display: block; pointer-events: none; }
+    .help-btn {
+      position: fixed; top: 18px; right: 28px;
+      background: none; border: none; cursor: pointer; padding: 0;
+      transition: opacity 0.2s; z-index: 50;
+      clip-path: inset(0% 0% 60% 80%);
+    }
+    .help-btn:hover { opacity: 0.8; }
+    .help-btn img { height: 300px; display: block; margin-top: -80px; margin-right: -240px; padding-bottom: 0px; }
+
+    /* ── Grid ── */
+    main {
+      margin-top:150px;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 80px;
+      padding: 120px 80px 100px;
+      align-items: start;
+    }
+
+    /* ── Story card ── */
+    .story-card {
+      background: var(--white);
+      border: var(--border);
+      padding: 26px 26px 18px;
+      display: flex;
+      flex-direction: column;
+      margin-top: -100px;
+      min-height: 670px;
+    }
+    .story-label { font-size: 40px; font-weight: 500; margin-bottom: 14px; }
+    .story-title-input {
+      width: 100%; border: none; 
+      outline: none; background: transparent; margin-bottom: 16px;
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 23px; font-weight: 600; color: var(--black);
+      padding-bottom: 6px;
+      margin-top:60px;
+    }
+    .story-title-input::placeholder { color: #bbb; font-weight: 400; }
+    .story-textarea {
+      flex: 1; resize: none; border: none; outline: none;
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 18px; line-height: 1.6; color: var(--black);
+      background: transparent; width: 100%; padding-left:10px; 
+    }
+    .story-textarea::placeholder { color: #bbb; font-weight: 400; }
+    .story-footer { margin-top: 20px; text-align: right; font-size: 17px; opacity: 0.5; margin-bottom:-3px;margin-right:-5px;}
+
+    /* ── Character card ── */
+    .character-card {
+      background: var(--yellow);
+      border: none;
+      min-height: 670px;
+      margin-top: -100px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .char-stage {
+      position: relative; width: 150%; height: 670px;
+      transform: scale(1.99);
+    }
+    .char-stage img {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; object-fit: contain;
+    }
+    #layer-eyes { transform: scale(0.9) translateY(-5px); }
+    #layer-nose { transform: translateY(-4px); }
+
+    /* ── Parts card (languettes) ── */
+    .parts-card {
+      margin-top: -100px;
+      align-self: start;
+    }
+    .tabs-row {
+      display: flex;
+      padding: 0 0px;
+      margin-bottom: -1px;
+      position: relative; z-index: 2;
+      gap: 0px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .tabs-row::-webkit-scrollbar { display: none; }
+    .lang-tab {
+      flex-shrink: 0;
+      width: 44px; height: 22px;
+      border-radius: 60% 60% 0 0 / 30px 30px 10px 0;
+      background: var(--white);
+      border: var(--border);
+      border-bottom-color: var(--black);
+      font-size: 0;
+      cursor: pointer;
+      position: relative; z-index: 0;
+      transition: background 0.12s;
+    }
+    .lang-tab.active {
+      background: var(--white);
+      border-bottom-color: var(--white);
+      z-index: 3;
+    }
+    .lang-tab:hover:not(.active) { background: #f0f0f0; }
+
+    .tab-body {
+      background: var(--white);
+      border: var(--border);
+      padding: 16px;
+      min-height: 470px;
+      position: relative; z-index: 1;
+    }
+
+    /* Parts grid */
+    .parts-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .part-btn {
+      aspect-ratio: 1; background: white;
+      border: 1.5px solid #ddd; border-radius: 8px;
+      padding: 4px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.12s;
+    }
+    .part-btn:hover { border-color: #999; }
+    .part-btn.active { border: 2px solid var(--black); }
+    .part-btn img { width: 100%; height: 100%; object-fit: contain; }
+    .none-btn {
+      aspect-ratio: 1; background: white;
+      border: 1.5px solid #ddd; border-radius: 8px;
+      cursor: pointer; font-size: 11px; color: #aaa;
+      font-family: inherit; transition: border-color 0.12s;
+    }
+    .none-btn:hover { border-color: #999; }
+    .none-btn.active { border: 2px solid var(--black); color: var(--black); }
+
+    /* Emotions tab */
+    .emo-row { margin-bottom: 45px; }
+    .emo-row:first-child { margin-top: 20px; }
+    .emo-row:last-child { margin-bottom: 0; }
+    .emo-label { font-size: 20px; margin-bottom: 6px; }
+    .emo-wrap { display: flex; align-items: center; gap: 8px; }
+    .emo-wrap input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      flex: 1; height: 6px;
+      background:
+        linear-gradient(#1a1a1a, #1a1a1a) center / 100% 0.75px no-repeat,
+        radial-gradient(circle, #1a1a1a 2px, transparent 2px) center / 10% 8px repeat-x;
+      outline: none; cursor: pointer;
+    }
+    .emo-wrap input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 15px; height: 15px;
+      border-radius: 50%; background: white; border: 1.5px solid #1a1a1a; cursor: pointer;
+    }
+    .emo-wrap input[type="range"]::-moz-range-thumb {
+      width: 15px; height: 15px;
+      border-radius: 50%; background: white; border: 1.5px solid #1a1a1a; cursor: pointer;
+    }
+    .emo-pct { font-size: 12px; width: 32px; text-align: right; opacity: 0.55; }
+
+    /* ── Answer button ── */
+    .answer-btn {
+      position: fixed; bottom: 40px; right: 25px; top:530px;
+      background: none; border: none; cursor: pointer; padding: 0;
+      transition: opacity 0.2s; z-index: 50; 
+      clip-path: inset(40% 20% 40% 35%);
+    }
+    .answer-btn:hover { opacity: 0.8; }
+    .answer-btn img { height: 380px; display: block; }
+
+    /* ── Popup submission ── */
+    .submission-overlay {
+      position: fixed; inset: 0;
+      z-index: 400;
+      display: none;
+    }
+    .submission-overlay.visible { display: block; }
+    .submission-overlay img.sub-bg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: fill;
+    }
+    .sub-btn {
+      position: absolute;
+      margin-top: 450px;
+      padding: 14px 35px;
+      border-radius: 50px;
+      background: white; border: 1.5px solid var(--black);
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 23px; cursor: pointer; transition: background 0.2s, color 0.2s;
+      min-width: 190px; text-align: center;
+    }
+    .sub-btn:hover { background: var(--black); color: var(--white); }
+    #subBtn1 { transform: translateX(760px) translateY(295px); }
+    #subBtn2 { transform: translateX(760px) translateY(370px); }
+  </style>
+</head>
+<body>
+
+<input type="hidden" id="pname" value="Player1">
+
+<header>
+  <a href="index.html" class="back-btn">
+    <img src="/parts/background/boutton_mirror.png" alt="Mirror">
+  </a>
+  <button class="help-btn"><img src="/parts/background/helplogo.png" alt="?"></button>
+</header>
+
+<main>
+  <!-- Gauche : story -->
+  <div class="story-card">
+    <div class="story-label" id="storyNumber">Story #…</div>
+    <input class="story-title-input" id="storyTitle" type="text"
+     placeholder="Enter story title" maxlength="80">
+    <textarea class="story-textarea" id="storyTextarea"
+      placeholder="Write your story..."
+      oninput="document.getElementById('wcount').textContent=this.value.trim().split(/\s+/).filter(Boolean).length+'/400'"></textarea>
+    <div class="story-footer" id="wcount">0/400</div>
+  </div>
+
+  <!-- Milieu : personnage -->
+  <div class="character-card">
+    <div class="char-stage">
+      <img id="layer-body_bottom" src="" alt="">
+      <img id="layer-body_top"    src="" alt="">
+      <img id="layer-gesture"     src="" alt="">
+      <img id="layer-face"        src="" alt="">
+      <img id="layer-hairstyle"   src="" alt="">
+      <img id="layer-eyebrow"     src="" alt="">
+      <img id="layer-eyes"        src="" alt="">
+      <img id="layer-nose"        src="" alt="">
+      <img id="layer-mouth"       src="" alt="">
+      <img id="layer-symbol"      src="" alt="">
+    </div>
+  </div>
+
+  <!-- Droite : sélecteur avec languettes -->
+  <div class="parts-card">
+    <div class="tabs-row" id="tabsRow"></div>
+    <div class="tab-body"  id="tabBody"></div>
+  </div>
+</main>
+
+<button class="answer-btn" id="answerBtn">
+  <img src="/parts/background/boutton_save.png" alt="Valider">
+</button>
+
+<script>
+const PARTS_PATH = 'parts/';
+
+const categories = [
+  { id:'symbol',      label:'💫', folder:'symbols',     prefix:'symbol_',      count:10, optional:true  },
+  { id:'eyebrow',     label:'✏️', folder:'eyebrows',    prefix:'eyebrow_',     count:8,  optional:false },
+  { id:'eyes',        label:'👁', folder:'eyes',        prefix:'eyes_',        count:9,  optional:false },
+  { id:'nose',        label:'👃', folder:'nose',        prefix:'nose_',        count:4,  optional:true  },
+  { id:'mouth',       label:'👄', folder:'mouth',       prefix:'mouth_',       count:8,  optional:false },
+  { id:'hairstyle',   label:'💇', folder:'hairstyle',   prefix:'hairstyle_',   count:3,  optional:false },
+  { id:'gesture',     label:'🤚', folder:'gesture',     prefix:'gesture_',     count:5,  optional:false },
+  { id:'body_top',    label:'👕', folder:'body_top',    prefix:'body_top_',    count:3,  optional:false },
+  { id:'face',        label:'🧑', folder:'face',        prefix:'face_',        count:1,  optional:false },
+  { id:'body_bottom', label:'👖', folder:'body_bottom', prefix:'body_bottom_', count:2,  optional:false },
+];
+
+const EMOTIONS_TAB = { id:'emotions', label:'❤️' };
+const COLOR_TAB    = { id:'color',    label:'🎨' };
+const ALL_TABS = [...categories.filter(c => c.id !== 'face'), EMOTIONS_TAB, COLOR_TAB];
+
+function imgPath(cat, n) {
+  return `${PARTS_PATH}${cat.folder}/${cat.prefix}${String(n).padStart(2,'0')}.PNG`;
+}
+
+/* État sélection parties */
+const selected = {};
+categories.forEach(cat => {
+  selected[cat.id] = (cat.optional || cat.count === 0) ? null : imgPath(cat, 1);
+});
+
+/* État émotions (persisté entre changements d'onglet) */
+const emotionValues = { joy:0, sadness:0, anger:0, fear:0, surprise:0 };
+
+/* État couleur du personnage */
+const PALETTE = [
+  { id:'yellow',   hex:'#FFF5A8', label:'Jaune'   },
+  { id:'blue',     hex:'#ADE8F8', label:'Bleu'    },
+  { id:'coral',    hex:'#FF8080', label:'Corail'  },
+  { id:'lavender', hex:'#D8B8E8', label:'Lavande' },
+  { id:'mint',     hex:'#A8F5C8', label:'Menthe'  },
+];
+let selectedColor = null;
+
+function updateLayer(catId) {
+  const el = document.getElementById('layer-' + catId);
+  if (!el) return;
+  const val = selected[catId];
+  if (val) { el.src = val; el.style.display = ''; }
+  else      { el.src = '';  el.style.display = 'none'; }
+}
+categories.forEach(cat => updateLayer(cat.id));
+
+/* Construction des onglets */
+const tabsRow = document.getElementById('tabsRow');
+const tabBody = document.getElementById('tabBody');
+
+ALL_TABS.forEach(tab => {
+  const btn = document.createElement('button');
+  btn.className = 'lang-tab';
+  btn.dataset.id = tab.id;
+  btn.textContent = tab.label;
+  btn.title = tab.id;
+  btn.addEventListener('click', () => setActiveTab(tab.id));
+  tabsRow.appendChild(btn);
+});
+
+function setActiveTab(id) {
+  tabsRow.querySelectorAll('.lang-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.id === id));
+  if (id === 'emotions') renderEmotions();
+  else if (id === 'color') renderColors();
+  else renderGrid(id);
+}
+
+function renderColors() {
+  tabBody.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'parts-grid';
+  PALETTE.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'part-btn' + (selectedColor === c.id ? ' active' : '');
+    btn.style.background = c.hex;
+    btn.title = c.label;
+    btn.onclick = () => { selectedColor = c.id; renderColors(); };
+    grid.appendChild(btn);
+  });
+  tabBody.appendChild(grid);
+}
+
+function renderGrid(catId) {
+  tabBody.innerHTML = '';
+  const cat = categories.find(c => c.id === catId);
+  if (!cat) return;
+  const grid = document.createElement('div');
+  grid.className = 'parts-grid';
+
+  if (cat.optional) {
+    const nb = document.createElement('button');
+    nb.className = 'none-btn' + (selected[cat.id] === null ? ' active' : '');
+    nb.textContent = 'None';
+    nb.onclick = () => { selected[cat.id] = null; updateLayer(cat.id); renderGrid(catId); };
+    grid.appendChild(nb);
+  }
+
+  for (let i = 1; i <= cat.count; i++) {
+    const path = imgPath(cat, i);
+    const btn = document.createElement('button');
+    btn.className = 'part-btn' + (selected[cat.id] === path ? ' active' : '');
+    const img = document.createElement('img');
+    img.src = path;
+    btn.appendChild(img);
+    btn.onclick = () => { selected[cat.id] = path; updateLayer(cat.id); renderGrid(catId); };
+    grid.appendChild(btn);
+  }
+  tabBody.appendChild(grid);
+}
+
+function renderEmotions() {
+  const emotions = [
+    { id:'joy',      label:'Happiness' },
+    { id:'sadness',  label:'Sadness'   },
+    { id:'anger',    label:'Anger'     },
+    { id:'fear',     label:'Fear'      },
+    { id:'surprise', label:'Surprise'  },
+  ];
+  tabBody.innerHTML = '';
+  emotions.forEach(e => {
+    const row = document.createElement('div');
+    row.className = 'emo-row';
+    const pctId = 'pct-' + e.id;
+    const inputId = 'emo-' + e.id;
+    row.innerHTML = `
+      <div class="emo-label">${e.label}</div>
+      <div class="emo-wrap">
+        <input type="range" id="${inputId}" class="emotion-slider"
+          min="0" max="100" step="10" value="${emotionValues[e.id]}">
+        <span class="emo-pct" id="${pctId}">${emotionValues[e.id]}%</span>
+      </div>`;
+    tabBody.appendChild(row);
+    row.querySelector('input').addEventListener('input', function() {
+      emotionValues[e.id] = Number(this.value);
+      document.getElementById(pctId).textContent = this.value + '%';
+    });
+  });
+}
+
+/* Démarre sur le premier onglet */
+setActiveTab(categories[0].id);
+
+/* Numéro de la prochaine story */
+fetch('/latest-character').then(r => r.json()).then(d => {
+  const next = d && d.id ? d.id + 1 : 1;
+  document.getElementById('storyNumber').textContent = 'Story #' + next;
+}).catch(() => {
+  document.getElementById('storyNumber').textContent = 'Story #1';
+});
+
+/* Sauvegarde */
+document.getElementById('answerBtn').addEventListener('click', async () => {
+  // Affiche le popup immédiatement
+  document.getElementById('submissionOverlay').classList.add('visible');
+
+  const data = {
+    name:        document.getElementById('pname').value,
+    title:       document.getElementById('storyTitle').value,
+    story:       document.getElementById('storyTextarea').value,
+    symbol:      selected.symbol      || '',
+    eyebrow:     selected.eyebrow     || '',
+    eyes:        selected.eyes        || '',
+    nose:        selected.nose        || '',
+    mouth:       selected.mouth       || '',
+    hairstyle:   selected.hairstyle   || '',
+    gesture:     selected.gesture     || '',
+    body_top:    selected.body_top    || '',
+    face:        selected.face        || '',
+    body_bottom: selected.body_bottom || '',
+    joy:      emotionValues.joy,
+    sadness:  emotionValues.sadness,
+    anger:    emotionValues.anger,
+    fear:     emotionValues.fear,
+    surprise: emotionValues.surprise,
+    color:    selectedColor || '',
+  };
+  try {
+    const res    = await fetch('/save-character', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    document.getElementById('subBtn2').onclick = async () => {
+      const all = await fetch('/all-characters').then(r => r.json());
+      const others = all.filter(c => c.id !== result.insertedId);
+      if (others.length === 0) {
+        window.location.href = '/guess.html?id=' + result.insertedId;
+        return;
+      }
+      const random = others[Math.floor(Math.random() * others.length)];
+      window.location.href = '/guess.html?id=' + random.id;
+    };
+    document.getElementById('subBtn1').onclick = () => {
+      window.location.href = '/index.html?nopopup=1';
+    };
+  } catch(err) { console.error(err); }
+});
+</script>
+<!-- Popup submission -->
+<div class="submission-overlay" id="submissionOverlay">
+  <img src="/parts/background/fond_submission.png" class="sub-bg" alt="">
+  <button class="sub-btn" id="subBtn1">Home</button>
+  <button class="sub-btn" id="subBtn2">Play again</button>
+</div>
+
+</body>
+</html>

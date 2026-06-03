@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mirror – Guess</title>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --yellow: #f5f0a0;
+      --black:  #1a1a1a;
+      --white:  #ffffff;
+      --border: 1px solid #1a1a1a;
+    }
+    body {
+      background: var(--yellow);
+      font-family: 'Courier Prime', 'Courier New', monospace;
+      color: var(--black);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px 0;
+    }
+    .back-btn { display: block; background: none; border: none; cursor: pointer; padding: 0; clip-path: inset(0% 0% 60% 0%);}
+    .back-btn img { height: 300px;margin-top:-110px; display: block; padding-bottom:0px;}
+    .help-btn {
+      position: fixed; top: 27px; right: 33px;
+      background: none; border: none; cursor: pointer; padding: 0;
+      transition: opacity 0.2s; z-index: 50;
+      clip-path: inset(0% 0% 60% 80%);
+    }
+    .help-btn:hover { opacity: 0.8; }
+    .help-btn img { height: 300px; display: block; margin-top: -90px;margin-right: -240px; padding-bottom:0px; }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 80px;
+      padding: 110px 80px 16px;
+      align-items: start;
+    }
+
+    /* ── Story card ── */
+    .story-card {
+      background: var(--white);
+      border: var(--border);
+      padding: 26px 26px 18px;
+      display: flex;
+      flex-direction: column;
+      margin-top:-100px;
+      height: 670px;
+      padding-bottom:0px;
+      overflow: hidden;
+    }
+    .story-number { font-size: 40px; font-weight: 500; margin-bottom: 14px; }
+    .story-title  {
+      font-size: 23px; font-weight: 600;
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      padding-bottom: 6px; margin-bottom: 16px; margin-top: 60px;
+      min-height: 28px; 
+    }
+    .story-text   { font-size: 18px; font-weight: 550; line-height: 1.6; flex: 1; font-family: 'American Typewriter', 'Courier New', monospace; padding-left:10px; overflow-y: auto; }
+    .story-footer { margin-top: 20px; text-align: right; font-size: 17px; opacity: 0.5; margin-bottom:10px;margin-right:-10px;}
+
+    /* ── Character card ── */
+    .character-card {
+      background: var(--yellow);
+      border: none;
+      min-height: 670px;
+      margin-top:-100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding-bottom:0px;
+    }
+    .char-placeholder { position: absolute; inset: 0; }
+    .char-placeholder line { stroke: var(--black); stroke-width: 1; }
+    .char-layers { position: relative; width: 150%; height: 670px; transform: scale(1.99); }
+    .char-layers img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+    #layer-eyes { transform: scale(0.9) translateY(-6px); }
+    #layer-nose { transform: translateY(-8px); }
+
+    /* ── Emotions card ── */
+    .emotions-card {
+      background: var(--white);
+      border: var(--border);
+      padding: 26px 22px;
+      margin-top:-100px;
+      min-height: 470px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-self: start;
+      padding-bottom:0px;
+    }
+    .emotion-row { margin-bottom: 45px; }
+    .emotion-row:first-child { margin-top: -30px; }
+    .emotion-row:last-child { margin-bottom: 0; }
+    .emotion-label { font-size: 20px; font-weight: 400; margin-bottom: 7px; }
+    .slider-wrap { display: flex; align-items: center; gap: 8px; }
+    .track-wrap { position: relative; flex: 1; display: flex; align-items: center; }
+    .answer-dot {
+      position: absolute; width: 15px; height: 15px; border-radius: 50%;
+      background: white; border: 1.5px solid #1a1a1a;
+      transform: translateX(-50%);
+      pointer-events: none; display: none;
+      top: 50%; margin-top: -7.5px; z-index: 2;
+    }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px;
+      background:
+        linear-gradient(#1a1a1a, #1a1a1a) center / 100% 0.75px no-repeat,
+        radial-gradient(circle, #1a1a1a 2px, transparent 2px) center / 10% 8px repeat-x;
+      outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 15px; height: 15px;
+      border-radius: 50%; background: var(--white); border: 1.5px solid var(--black); cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 15px; height: 15px;
+      border-radius: 50%; background: var(--white); border: 1.5px solid var(--black); cursor: pointer;
+    }
+    .pct-label { font-size: 12px; width: 32px; text-align: right; opacity: 0.55; }
+
+    /* ── Footer ── */
+    footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 10px 28px 174px;
+      gap: 20px;
+    }
+    #result-msg { font-size: 14px; font-weight: 700; flex: 1; }
+    #result-msg.success { color: #2a7a2a; }
+    #result-msg.fail    { color: #c0392b; }
+    .continue-btn {
+      position: fixed; bottom: 40px; right: 25px;
+      background: none; border: none; cursor: pointer; padding: 0;
+      transition: opacity 0.2s; z-index: 50;
+      clip-path: inset(40% 10% 40% 20%);
+    }
+    .continue-btn:hover { opacity: 0.8; }
+    .continue-btn img { height: 400px; display: block; }
+
+    .help-tooltip {
+      display: none; position: fixed; top: 64px; right: 28px;
+      background:transparent;
+      font-size: 13px; line-height: 1.6; max-width: 240px; z-index: 100;
+    }
+    .help-tooltip.visible { display: block; }
+
+    /* ── Popup How to play ── */
+    .popup-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.15);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200;
+    }
+    .popup-overlay.hidden { display: none; }
+    @keyframes fadeOut { from{opacity:1;} to{opacity:0;} }
+    .popup-overlay.closing, .house-overlay.closing { animation: fadeOut 0.4s ease forwards; }
+    .popup-box {
+      background: var(--white);
+      border: 2px solid #a0b4e0;
+      padding: 40px 48px 48px;
+      width: 680px;
+      max-width: 90vw;
+      position: relative;
+    }
+    .popup-close {
+      position: absolute; top: -30px; right: -15px;
+      background: none; border: none; cursor: pointer;
+      padding: 0;
+    }
+    .popup-close:hover { opacity: 1; }
+    .popup-title {
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 50px; font-weight: 500; margin-bottom: 28px;
+    }
+    .popup-list {
+      list-style: none; padding: 0;
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 20px; font-weight: 400; line-height: 1.8;
+    }
+    .popup-list li::before { content: counter(item) '. '; counter-increment: item; }
+    .popup-list { counter-reset: item; }
+
+    /* ── Popup maison (résultat final) ── */
+    .house-overlay {
+      position: fixed; inset: 0;
+      z-index: 300;
+    }
+    .house-overlay.hidden { display: none; }
+    .house-wrapper {
+      position: relative;
+      width: 100%; height: 100%;
+    }
+    .house-svg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .house-content {
+      position: absolute;
+      top: 33%; left: 21%; right: 6%; bottom: 4%;
+      display: flex; flex-direction: column;
+      padding: 32px 60px 32px;
+    }
+    .house-title {
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 55px; font-weight: 600; margin-bottom: 24px; margin-top:15px;
+    }
+    .house-list {
+      list-style: none; padding: 0; counter-reset: hi;
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 25px; font-weight: 400; line-height: 1.8; flex: 1; padding-left:20px;
+    }
+    .house-list li::before { content: counter(hi) '. '; counter-increment: hi; }
+    .create-btn {
+      position: absolute;
+      margin-top:450px;
+      transform:translateX(315px);
+      padding: 14px 35px;
+      border-radius: 50px;
+      margin-right:70px;
+      background: white; border: 1.5px solid var(--black);
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 23px; cursor: pointer; transition: opacity 0.2s;
+    }
+    .create-btn:hover { background: var(--black); color: var(--white); }
+
+    .nextfact-btn {
+      position: absolute; top: calc(4% + 303px); left: 230px;
+      background: none; border: none; padding: 0;
+      cursor: pointer; transition: opacity 0.2s; z-index: 10;
+      display: inline-flex; line-height: 0; font-size: 0;
+      width: fit-content; height: fit-content;
+      clip-path: inset(30% 13% 30% 35%);
+    }
+    .nextfact-btn img { height: 115px; display: block; opacity: 0.8; pointer-events: none; }
+    .nextfact-btn:hover { opacity: 0.7; }
+    .back-btn2 {
+      position: absolute; top: -415px; left: -330px;
+      background: none; border: none; cursor: pointer; padding: 0;
+      display: inline-flex; line-height: 0; font-size: 0;
+      width: fit-content; height: fit-content;
+      transition: opacity 0.2s; z-index: 10;
+      clip-path: inset(40% 0% 40% 0%);
+    }
+    .back-btn2:hover { opacity: 0.8; }
+    .back-btn2 img { height: 300px; display: block; pointer-events: none; }
+    .sub-btn {
+      position: absolute;
+      border-radius: 50px;
+      background: white; border: 1.5px solid var(--black);
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 23px; cursor: pointer; transition: background 0.2s, color 0.2s;
+      min-width: 190px; text-align: center;
+      margin-top:370px;
+      transform:translateX(320px);
+      padding: 14px 70px;
+    }
+    .sub-btn:hover { background: var(--black); color: var(--white); }
+  </style>
+</head>
+<body>
+
+<!-- Popup maison résultat --> 
+<div class="house-overlay hidden" id="houseOverlay">
+  <div class="house-wrapper">
+    <img src="/parts/background/fond_funfact.png" class="house-svg" alt="">
+    <button class="nextfact-btn" id="nextFactBtn"><img src="/parts/background/boutton_random.png" alt="next"></button>
+    <div class="house-content">
+      <div class="house-title">Fun facts about non-verbal emotions</div>
+      <div class="house-list" id="currentFact"></div>
+      <button class="create-btn" id="createStoryBtn">Create own story</button>
+      <button class="sub-btn" id="subBtn2">Play again</button>
+      <a href="index.html?nopopup=1" class="back-btn2">
+        <img src="/parts/background/boutton_mirror_blanc.png" alt="Mirror">
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="popupClose"><img src="/parts/background/cross.png" alt="Fermer" style="height:160px;display:block;"></button>
+    <div class="popup-title">How to play</div>
+    <ol class="popup-list">
+      <li>Open a story from the cabinet.</li>
+      <li>Read the user's experience.</li>
+      <li>Guess the emotion behind their words.</li>
+      <li>Explore the non-verbal expressions connected to those emotions and create a character displaying those emotions. </li>
+      <li>Compare your answers to other users. </li>
+      <li>Sumbit your own story.</li>
+    </ol>
+  </div>
+</div>
+
+<header>
+  <a href="index.html?nopopup=1" class="back-btn">
+    <img src="/parts/background/boutton_mirror.png" alt="Mirror">
+  </a>
+  <button class="help-btn" id="helpBtn"><img src="/parts/background/helplogo.png" alt="?"></button>
+</header>
+
+
+
+<main>
+  <div class="story-card">
+    <div class="story-number" id="storyNumber">Story #–</div>
+    <div class="story-title"  id="storyTitle"></div>
+    <div class="story-text"   id="storyText">Chargement…</div>
+    <div class="story-footer" id="storyFooter"></div>
+  </div>
+
+  <div class="character-card" id="characterCard">
+    <svg class="char-placeholder" id="charPlaceholder" viewBox="0 0 300 370" preserveAspectRatio="none">
+      <line x1="0" y1="0" x2="300" y2="370"/>
+      <line x1="300" y1="0" x2="0" y2="370"/>
+    </svg>
+    <div class="char-layers" id="charLayers" style="display:none;"></div>
+  </div>
+
+  <div class="emotions-card">
+    <div class="emotion-row">
+      <div class="emotion-label">Happiness</div>
+      <div class="slider-wrap">
+        <div class="track-wrap">
+          <input type="range" min="0" max="100" step="10" value="0" id="joy"
+            oninput="document.getElementById('joy-pct').textContent=this.value+'%'">
+          <span class="answer-dot" id="joy-dot"></span>
+        </div>
+        <span class="pct-label" id="joy-pct">0%</span>
+      </div>
+    </div>
+    <div class="emotion-row">
+      <div class="emotion-label">Sadness</div>
+      <div class="slider-wrap">
+        <div class="track-wrap">
+          <input type="range" min="0" max="100" step="10" value="0" id="sadness"
+            oninput="document.getElementById('sadness-pct').textContent=this.value+'%'">
+          <span class="answer-dot" id="sadness-dot"></span>
+        </div>
+        <span class="pct-label" id="sadness-pct">0%</span>
+      </div>
+    </div>
+    <div class="emotion-row">
+      <div class="emotion-label">Anger</div>
+      <div class="slider-wrap">
+        <div class="track-wrap">
+          <input type="range" min="0" max="100" step="10" value="0" id="anger"
+            oninput="document.getElementById('anger-pct').textContent=this.value+'%'">
+          <span class="answer-dot" id="anger-dot"></span>
+        </div>
+        <span class="pct-label" id="anger-pct">0%</span>
+      </div>
+    </div>
+    <div class="emotion-row">
+      <div class="emotion-label">Fear</div>
+      <div class="slider-wrap">
+        <div class="track-wrap">
+          <input type="range" min="0" max="100" step="10" value="0" id="fear"
+            oninput="document.getElementById('fear-pct').textContent=this.value+'%'">
+          <span class="answer-dot" id="fear-dot"></span>
+        </div>
+        <span class="pct-label" id="fear-pct">0%</span>
+      </div>
+    </div>
+    <div class="emotion-row">
+      <div class="emotion-label">Surprise</div>
+      <div class="slider-wrap">
+        <div class="track-wrap">
+          <input type="range" min="0" max="100" step="10" value="0" id="surprise"
+            oninput="document.getElementById('surprise-pct').textContent=this.value+'%'">
+          <span class="answer-dot" id="surprise-dot"></span>
+        </div>
+        <span class="pct-label" id="surprise-pct">0%</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div id="result-msg"></div>
+  <button class="continue-btn" id="continueBtn">
+    <img src="/parts/background/boutton_continue.png" alt="Continue">
+  </button>
+</footer>
+
+<script>
+function fadeClose(el) {
+  el.classList.add('closing');
+  setTimeout(() => { el.classList.add('hidden'); el.classList.remove('closing'); }, 400);
+}
+
+
+document.getElementById('popupClose').addEventListener('click', () => {
+  fadeClose(document.getElementById('popupOverlay'));
+});
+document.getElementById('popupOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) fadeClose(e.currentTarget);
+});
+
+document.getElementById('helpBtn').addEventListener('click', () => {
+  const overlay = document.getElementById('popupOverlay');
+  overlay.classList.remove('hidden', 'closing');
+});
+
+let characterData = null;
+
+function buildCharacter(data) {
+  const layersDiv = document.getElementById('charLayers');
+  layersDiv.innerHTML = '';
+  const LAYER_ORDER = ['body_bottom','body_top','gesture','face','hairstyle','eyebrow','eyes','nose','mouth','symbol'];
+  LAYER_ORDER.forEach(key => {
+    const src = data[key];
+    if (!src) return;
+    const img = document.createElement('img');
+    img.src = src.startsWith('/') ? src : '/' + src;
+    img.alt = key;
+    img.id  = 'layer-' + key;
+    layersDiv.appendChild(img);
+  });
+  document.getElementById('charPlaceholder').style.display = 'none';
+  layersDiv.style.display = '';
+}
+
+async function loadCharacter() {
+  let params = new URLSearchParams(window.location.search);
+  let id = params.get('id');
+
+  if (!id) {
+    const latestRes  = await fetch('/latest-character');
+    const latestData = await latestRes.json();
+    if (!latestData || !latestData.id) {
+      document.getElementById('storyText').textContent = 'No character in database.';
+      return;
+    }
+    id = latestData.id;
+  }
+
+  const res = await fetch(`/get-character/${id}`);
+  if (!res.ok) {
+    document.getElementById('storyText').textContent = 'character loading error.';
+    return;
+  }
+
+  const data = await res.json();
+  characterData = data;
+
+  document.getElementById('storyNumber').textContent = 'Story #' + data.id;
+  document.getElementById('storyTitle').textContent  = data.title || '';
+  document.getElementById('storyText').textContent   = data.story || "(No story entered)";
+  const wc = (data.story || '').split(/\s+/).filter(Boolean).length;
+  document.getElementById('storyFooter').textContent = wc + '/400';
+
+  buildCharacter(data);
+}
+
+loadCharacter();
+
+let feedbackShown = false;
+
+document.getElementById('continueBtn').addEventListener('click', () => {
+  if (!characterData) { window.location.href = '/builder.html'; return; }
+
+  if (!feedbackShown) {
+    const emotions = ['joy','sadness','anger','fear','surprise'];
+    emotions.forEach(e => {
+      const input      = document.getElementById(e);
+      const userVal    = Number(input.value);
+      const correctVal = Number(characterData[e]);
+      const isCorrect  = Math.abs(userVal - correctVal) <= 10;
+      const color      = isCorrect ? 'rgba(80,190,80,0.6)' : 'rgba(210,70,70,0.6)';
+
+      input.style.setProperty('background', `
+        linear-gradient(to right, ${color} 0%, ${color} ${correctVal}%, transparent ${correctVal}%) center / 100% 8px no-repeat,
+        linear-gradient(#1a1a1a, #1a1a1a) center / 100% 0.75px no-repeat,
+        radial-gradient(circle, #1a1a1a 2px, transparent 2px) center / 10% 8px repeat-x
+      `, 'important');
+
+      const dot = document.getElementById(e + '-dot');
+      dot.style.left    = correctVal + '%';
+      dot.style.display = 'block';
+
+      input.disabled = true;
+    });
+    feedbackShown = true;
+  } else {
+    document.getElementById('houseOverlay').classList.remove('hidden');
+    showNextFact();
+  }
+});
+
+document.getElementById('createStoryBtn').addEventListener('click', () => {
+  window.location.href = '/builder.html';
+});
+
+/* ── Fun facts ── */
+const ALL_FACTS = [
+  'funfact1', 'funfact2', 'funfact3', 'funfact4', 'funfact5',
+  'funfact6', 'funfact7', 'funfact8', 'funfact9', 'funfact10',
+  'funfact11', 'funfact12', 'funfact13', 'funfact14', 'funfact15',
+  'funfact16', 'funfact17', 'funfact18', 'funfact19', 'funfact20',
+];
+let remainingFacts = [];
+
+function showNextFact() {
+  if (remainingFacts.length === 0) remainingFacts = [...ALL_FACTS];
+  const idx  = Math.floor(Math.random() * remainingFacts.length);
+  const fact = remainingFacts.splice(idx, 1)[0];
+  document.getElementById('currentFact').textContent = fact;
+}
+
+document.getElementById('nextFactBtn').addEventListener('click', showNextFact);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bibliothèque</title>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      margin: 0;
+      height: 100%;
+    }
+    body {
+      min-height: 100vh;
+      background-image: url("parts/background/fond_library.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      font-family: 'Courier Prime', 'Courier New', monospace;
+    }
+
+    .back-btn {
+      position: fixed; top: -125px; left: 20px;
+      display: block; background: none; border: none; cursor: pointer; padding: 0;
+    }
+    .back-btn img { height: 400px; display: block; }
+
+    /* ── Boutons toggle ── */
+    .toggle-btns {
+      position: absolute;
+      margin-top: 370px;
+      transform: translateX(295px);
+      display: flex;
+      gap: 60px;
+    }
+    .sub-btn {
+      border-radius: 50px;
+      background: white;
+      border: 1.5px solid black;
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 23px; cursor: pointer; transition: background 0.2s, color 0.2s;
+      min-width: 190px; text-align: center;
+      padding: 14px 40px;
+    }
+    .sub-btn:hover { background: black; color: white; }
+    .sub-btn.active { background: black; color: white; }
+
+    /* ── Zone à repositionner facilement ── */
+    .library-zone {
+      position: absolute;
+      top: 440px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 88%;
+    }
+
+    /* ── Rectangle scrollable ── */
+    .library-scroll {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      padding-top: 30px;
+      padding-left: 90px;
+      padding-right: 90px;
+      max-height: calc(100vh - 440px - 107px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    /* ── VUE FIGURES : grille 4 colonnes ── */
+    .chars-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .char-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+    .color-square {
+      width: 270px;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      transition: transform 0.15s;
+      margin-bottom: 45px;
+    }
+    .char-card:hover .color-square { transform: scale(1.02); }
+
+    /* ── VUE STORIES : liste verticale ── */
+    .stories-list { display: flex; flex-direction: column; gap: 0; padding-bottom: 20px; }
+    .story-item { padding: 22px 0; cursor: pointer; }
+    .story-title-tag {
+      display: inline-block;
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      font-size: 22px; font-weight: 500;
+      padding: 8px 30px 8px 10px;
+      border-radius: 0 44px 0 0;
+      border: 1.5px solid #1a1a1a;
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+    .story-excerpt {
+      font-family: 'Courier New', monospace;
+      font-size: 17px; color: #1a1a1a; line-height: 1.5;
+      border: 1.5px solid #1a1a1a;
+      padding: 10px 18px;
+      background: white;
+    }
+
+    /* ══════════════════════════════════════
+       MODALE PERSO — layout identique guess
+       ══════════════════════════════════════ */
+    :root {
+      --yellow: #f5f0a0;
+      --black:  #1a1a1a;
+      --white:  #ffffff;
+      --border: 1px solid #1a1a1a;
+    }
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: var(--yellow);
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+    }
+    .modal-overlay.visible { display: flex; }
+
+    .modal-close {
+      position: fixed; top: -125px; left: 20px;
+      background: none; border: none; cursor: pointer;
+      z-index: 10; padding: 0;
+    }
+    .modal-close img { height: 400px; display: block; }
+
+    .modal-main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 80px;
+      padding: 260px 80px 16px;
+      align-items: start;
+    }
+
+    /* story card */
+    .m-story-card {
+      background: var(--white);
+      border: var(--border);
+      padding: 26px 26px 18px;
+      display: flex; flex-direction: column;
+      margin-top: -100px;
+      height: 670px;
+      overflow: hidden;
+    }
+    .m-story-number { font-size: 40px; font-weight: 500; margin-bottom: 14px; }
+    .m-story-title {
+      font-size: 23px; font-weight: 600;
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      padding-bottom: 6px; margin-bottom: 16px; margin-top: 60px;
+    }
+    .m-story-text {
+      font-size: 18px; font-weight: 550; line-height: 1.6; flex: 1;
+      font-family: 'American Typewriter', 'Courier New', monospace;
+      padding-left: 10px; overflow-y: auto;
+    }
+
+    /* character card */
+    .m-character-card {
+      background: transparent;
+      border: none;
+      min-height: 670px; margin-top: -100px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .m-char-layers {
+      position: relative; width: 150%; height: 670px;
+      transform: scale(1.99);
+    }
+    .m-char-layers img {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; object-fit: contain;
+    }
+
+    /* emotions card */
+    .m-emotions-card {
+      background: var(--white);
+      border: var(--border);
+      padding: 26px 22px;
+      margin-top: -100px;
+      display: flex; flex-direction: column; justify-content: center;
+      align-self: start;
+    }
+    .m-emotion-row { margin-bottom: 38px; }
+    .m-emotion-row:first-child { margin-top: 0; }
+    .m-emotion-row:last-child  { margin-bottom: 0; }
+    .m-emotion-label { font-size: 20px; font-weight: 400; margin-bottom: 7px; }
+    .m-slider-wrap { display: flex; align-items: center; gap: 8px; }
+    .m-emotions-card input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      flex: 1; height: 6px;
+      background:
+        linear-gradient(#1a1a1a, #1a1a1a) center / 100% 0.75px no-repeat,
+        radial-gradient(circle, #1a1a1a 2px, transparent 2px) center / 10% 8px repeat-x;
+      outline: none; pointer-events: none;
+    }
+    .m-emotions-card input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 15px; height: 15px;
+      border-radius: 50%; background: var(--white); border: 1.5px solid var(--black);
+    }
+    .m-emotions-card input[type="range"]::-moz-range-thumb {
+      width: 15px; height: 15px;
+      border-radius: 50%; background: var(--white); border: 1.5px solid var(--black);
+    }
+    .m-pct-label { font-size: 12px; width: 32px; text-align: right; opacity: 0.55; }
+  </style>
+</head>
+<body>
+
+  <a href="index.html?nopopup=1" class="back-btn">
+    <img src="/parts/background/boutton_cabinet.png" alt="cabinet">
+  </a>
+
+  <div class="toggle-btns">
+    <button class="sub-btn active" id="btnFigures" onclick="setView('figures')" style="position:relative; left:2px">Figures</button>
+    <button class="sub-btn"        id="btnStories" onclick="setView('stories')" style="position:relative; left:8px">Stories</button>
+  </div>
+
+  <div class="library-zone">
+    <div class="library-scroll" id="libraryScroll"></div>
+  </div>
+
+  <!-- ── Modale perso ── -->
+  <div class="modal-overlay" id="modalOverlay">
+    <button class="modal-close" id="modalClose">
+      <img src="/parts/background/boutton_cabinet.png" alt="retour library">
+    </button>
+    <div class="modal-main">
+      <div class="m-story-card">
+        <div class="m-story-number" id="m-storyNumber">Story #–</div>
+        <div class="m-story-title"  id="m-storyTitle"></div>
+        <div class="m-story-text"   id="m-storyText"></div>
+      </div>
+      <div class="m-character-card">
+        <div class="m-char-layers" id="m-charLayers"></div>
+      </div>
+      <div class="m-emotions-card">
+        <div class="m-emotion-row">
+          <div class="m-emotion-label">Happiness</div>
+          <div class="m-slider-wrap">
+            <input type="range" min="0" max="100" step="10" id="m-joy">
+            <span class="m-pct-label" id="m-joy-pct">0%</span>
+          </div>
+        </div>
+        <div class="m-emotion-row">
+          <div class="m-emotion-label">Sadness</div>
+          <div class="m-slider-wrap">
+            <input type="range" min="0" max="100" step="10" id="m-sadness">
+            <span class="m-pct-label" id="m-sadness-pct">0%</span>
+          </div>
+        </div>
+        <div class="m-emotion-row">
+          <div class="m-emotion-label">Anger</div>
+          <div class="m-slider-wrap">
+            <input type="range" min="0" max="100" step="10" id="m-anger">
+            <span class="m-pct-label" id="m-anger-pct">0%</span>
+          </div>
+        </div>
+        <div class="m-emotion-row">
+          <div class="m-emotion-label">Fear</div>
+          <div class="m-slider-wrap">
+            <input type="range" min="0" max="100" step="10" id="m-fear">
+            <span class="m-pct-label" id="m-fear-pct">0%</span>
+          </div>
+        </div>
+        <div class="m-emotion-row">
+          <div class="m-emotion-label">Surprise</div>
+          <div class="m-slider-wrap">
+            <input type="range" min="0" max="100" step="10" id="m-surprise">
+            <span class="m-pct-label" id="m-surprise-pct">0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PALETTE = {
+      yellow:   '#FFF5A8',
+      blue:     '#ADE8F8',
+      coral:    '#FF8080',
+      lavender: '#D8B8E8',
+      mint:     '#A8F5C8',
+    };
+    const FALLBACK = '#e0e0e0';
+    const LAYER_ORDER = ['body_bottom','body_top','gesture','face','hairstyle','eyebrow','eyes','nose','mouth','symbol'];
+
+    let allChars = [];
+    let currentView = 'figures';
+
+    fetch('/all-characters')
+      .then(r => r.json())
+      .then(chars => { allChars = chars; renderView(); });
+
+    function setView(view) {
+      currentView = view;
+      document.getElementById('btnFigures').classList.toggle('active', view === 'figures');
+      document.getElementById('btnStories').classList.toggle('active', view === 'stories');
+      renderView();
+    }
+
+    function renderView() {
+      const scroll = document.getElementById('libraryScroll');
+      scroll.innerHTML = '';
+      currentView === 'figures' ? renderFigures(scroll) : renderStories(scroll);
+    }
+
+    function renderFigures(container) {
+      const grid = document.createElement('div');
+      grid.className = 'chars-grid';
+      allChars.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'char-card';
+        const sq = document.createElement('div');
+        sq.className = 'color-square';
+        sq.style.background = PALETTE[c.color] || FALLBACK;
+        card.appendChild(sq);
+        card.onclick = () => openModal(c);
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+    }
+
+    function renderStories(container) {
+      const list = document.createElement('div');
+      list.className = 'stories-list';
+      allChars.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'story-item';
+        const titleBg = PALETTE[c.color] || FALLBACK;
+        const excerpt = (c.story || '').trim().slice(0, 120) + (c.story && c.story.length > 120 ? '…' : '');
+        item.innerHTML = `
+          <div class="story-title-tag" style="background:${titleBg}">${c.title && c.title.trim() ? c.title : `no title, story ${c.id}`}</div>
+          <div class="story-excerpt">${excerpt || '(pas de texte)'}</div>
+        `;
+        item.onclick = () => openModal(c);
+        list.appendChild(item);
+      });
+      container.appendChild(list);
+    }
+
+    function openModal(c) {
+      document.getElementById('m-storyNumber').textContent = 'Story #' + c.id;
+      document.getElementById('m-storyTitle').textContent  = c.title || '';
+      document.getElementById('m-storyText').textContent   = c.story || '(pas de texte)';
+
+      const layers = document.getElementById('m-charLayers');
+      layers.innerHTML = '';
+      LAYER_ORDER.forEach(key => {
+        const src = c[key];
+        if (!src) return;
+        const img = document.createElement('img');
+        img.src = src.startsWith('/') ? src : '/' + src;
+        img.alt = key;
+        if (key === 'eyes')  img.style.transform = 'scale(0.9) translateY(-6px)';
+        if (key === 'nose')  img.style.transform = 'translateY(-8px)';
+        layers.appendChild(img);
+      });
+
+      const emotions = ['joy','sadness','anger','fear','surprise'];
+      emotions.forEach(e => {
+        const val = Number(c[e]) || 0;
+        document.getElementById('m-' + e).value = val;
+        document.getElementById('m-' + e + '-pct').textContent = val + '%';
+      });
+
+      const bg = PALETTE[c.color] || '#f5f0a0';
+      document.getElementById('modalOverlay').style.background = bg;
+      document.getElementById('modalOverlay').classList.add('visible');
+    }
+
+    document.getElementById('modalClose').addEventListener('click', () => {
+      document.getElementById('modalOverlay').classList.remove('visible');
+    });
+  </script>
+
+</body>
+</html>
