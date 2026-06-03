@@ -465,6 +465,12 @@ async function loadCharacter() {
   const data = await res.json();
   characterData = data;
 
+  const PALETTE = { yellow:'#FFF5A8', blue:'#ADE8F8', coral:'#FF8080', lavender:'#D8B8E8', mint:'#A8F5C8' };
+  if (data.color && PALETTE[data.color]) {
+    document.body.style.background = PALETTE[data.color];
+    document.getElementById('characterCard').style.background = PALETTE[data.color];
+  }
+
   document.getElementById('storyNumber').textContent = 'Story #' + data.id;
   document.getElementById('storyTitle').textContent  = data.title || '';
   document.getElementById('storyText').textContent   = data.story || "(No story entered)";

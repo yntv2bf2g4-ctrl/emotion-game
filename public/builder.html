@@ -365,7 +365,12 @@ function renderColors() {
     btn.className = 'part-btn' + (selectedColor === c.id ? ' active' : '');
     btn.style.background = c.hex;
     btn.title = c.label;
-    btn.onclick = () => { selectedColor = c.id; renderColors(); };
+    btn.onclick = () => {
+      selectedColor = c.id;
+      document.body.style.background = c.hex;
+      document.querySelector('.character-card').style.background = c.hex;
+      renderColors();
+    };
     grid.appendChild(btn);
   });
   tabBody.appendChild(grid);
